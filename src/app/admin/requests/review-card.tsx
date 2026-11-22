@@ -1,6 +1,5 @@
 'use client'
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { CalendarDays, Check, X } from 'lucide-react'
 import { approveRequestAction, rejectRequestAction } from '@/actions/requests'
 import { ConflictChip, StatusChip } from '@/components/ui'
@@ -8,7 +7,6 @@ import { formatShortDate, slotLabel, TYPE_LABEL } from '@/lib/domain/labels'
 import type { AdminReservation, TimeSlot } from '@/types'
 
 export function ReviewCard({ r, slot }: { r: AdminReservation; slot: TimeSlot }) {
-  const router = useRouter()
   const [pending, start] = useTransition()
   const [rejecting, setRejecting] = useState(false)
   const [reason, setReason] = useState('')
@@ -17,7 +15,7 @@ export function ReviewCard({ r, slot }: { r: AdminReservation; slot: TimeSlot })
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) => start(async () => {
     setError(null)
     const res = await fn()
-    if (res.ok) { setRejecting(false); router.refresh() } else setError(res.error ?? 'Error')
+    if (res.ok) { setRejecting(false) } else setError(res.error ?? 'Error')
   })
 
   return (

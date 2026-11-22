@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/navigation-link'
 import { ChevronRight, Code2, Cpu, FlaskConical, Monitor, Network, Search, Server, Users, Video, Brain, Database } from 'lucide-react'
 import { AppShell } from '@/components/app-shell'
 import { LabTabs } from '@/components/lab-tabs'

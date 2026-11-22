@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/navigation-link'
 import { Plus } from 'lucide-react'
 import { AppShell } from '@/components/app-shell'
 import { DateStrip } from '@/components/date-strip'

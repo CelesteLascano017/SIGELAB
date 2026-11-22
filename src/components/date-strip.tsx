@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/navigation-link'
 import { addDays, dayParts, todayLocal } from '@/lib/domain/labels'
 
 export function DateStrip({ selected, hrefFor, days = 14 }: { selected: string; hrefFor: (date: string) => string; days?: number }) {

@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/navigation-link'
 import { Bell, ChevronRight, CircleUser, FlaskConical, Headset, ImageIcon, LayoutGrid, Laptop, Archive, FileWarning, Network } from 'lucide-react'
 import { signOutAction } from '@/actions/auth'
 import { homePathFor, requireUser } from '@/lib/auth'

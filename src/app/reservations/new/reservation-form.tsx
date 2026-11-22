@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useMemo, useState, useTransition } from 'react'
-import Link from 'next/link'
+import Link from '@/components/navigation-link'
 import { Button } from '@heroui/react'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import { createRequestAction, fetchAvailabilityAction } from '@/actions/requests'

@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/navigation-link'
 import { AlertTriangle, CalendarDays, ChevronRight, FileText, History, Search } from 'lucide-react'
 import { AppShell } from '@/components/app-shell'
 import { AutoSubmitSelect } from '@/components/auto-submit-select'
