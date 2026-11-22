@@ -1,0 +1,19 @@
+# Decisiones técnicas
+- **Lógica crítica en funciones SQL `security definer`** (crear/aprobar/rechazar/cancelar): transaccionales, verifican rol en BD y no dependen del frontend. Las tablas de solicitudes no tienen políticas de escritura directa.
+- **Anti-solapamiento:** índice único parcial `(lab_id, date, slot_id) where status='approved'` + `pg_advisory_xact_lock` en la aprobación. Los bloques son fijos (7 de 2 h), por lo que no hace falta rango/exclusion constraint.
+- **Solicitudes pendientes duplicadas se permiten** (el prototipo muestra «Conflicto» entre pendientes); solo una puede aprobarse.
+- **Disponibilidad vía `get_availability`:** expone solo estado y código de reserva confirmada, no datos del solicitante.
+- **Rol:** `profiles.role`, asignado por trigger desde `app_metadata` (solo escribible con service role). Sin políticas de update en `profiles`.
+- **Notificaciones in-app** (tabla + campana). No se envía correo.
+- **Zona horaria:** America/Guayaquil para «hoy».
+- **Solo docentes crean solicitudes** (HU-03 «profesor solicitante»). Admin y estudiantes reciben `FORBIDDEN`.
+- **Botón Escanear QR** del prototipo se muestra deshabilitado: no pertenece a HU-01…06.
+- **Pruebas de BD con PGlite** (Postgres WASM) por no haber Docker/Postgres local; auth/roles de Supabase se simulan con un stub mínimo (`tests/db/harness.ts`).
+- **Next 16:** `proxy.ts` reemplaza a `middleware.ts`.
+- **Migración 04:** `profiles.role` se sincroniza con `app_metadata` en INSERT y UPDATE (GoTrue los hace en dos pasos). `app_metadata` solo la escribe el servidor.
+- **`service_role` sin privilegios en `public`:** se acepta (mínimo privilegio). La Secret key solo se usa en `seed:demo` para la API de Auth; los datos se leen con sesiones de usuario.
+- **Sin cliente Supabase en el navegador:** toda la lectura/escritura pasa por Server Components y Server Actions; el navegador no recibe ninguna clave.
+- **Reservas «Reservado» seleccionables** en el formulario (mockup 11) para mostrar «No disponible»; «Clase» y «No disponible» sí se deshabilitan.
+- **Ganchos de QA `?__empty=1`** solo fuera de producción, para verificar estados vacíos con las páginas reales.
+- **Código `SOL-AAAA-NNNN`:** el año es el de la fecha reservada (no el de registro). Mejora posible.
+- **Contraste:** `gray-400/500` de Tailwind se oscurecen en `globals.css` para cumplir WCAG AA.
