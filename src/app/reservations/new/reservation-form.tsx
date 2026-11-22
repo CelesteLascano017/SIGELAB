@@ -19,7 +19,8 @@ export function ReservationForm({ labs, slots, requesterName, today, initial }: 
   const [type, setType] = useState('')
   const [attendees, setAttendees] = useState('')
   const [reason, setReason] = useState('')
-  const [cells, setCells] = useState<AvailabilityCell[]>([])
+  const [availability, setAvailability] = useState<{ date: string; cells: AvailabilityCell[]; error?: string } | null>(null)
+  const [availabilityAttempt, setAvailabilityAttempt] = useState(0)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState<string | null>(null)
   const [done, setDone] = useState<{ code: string; status: string } | null>(null)
@@ -31,10 +32,15 @@ export function ReservationForm({ labs, slots, requesterName, today, initial }: 
 
   useEffect(() => {
     let cancelled = false
-    fetchAvailabilityAction(date).then((c) => { if (!cancelled) setCells(c) })
+    fetchAvailabilityAction(date)
+      .then((cells) => { if (!cancelled) setAvailability({ date, cells }) })
+      .catch(() => { if (!cancelled) setAvailability({ date, cells: [], error: 'No pudimos consultar la disponibilidad. Comprueba tu conexión.' }) })
     return () => { cancelled = true }
-  }, [date])
+  }, [date, availabilityAttempt])
 
+  const availabilityLoading = availability?.date !== date
+  const availabilityError = !availabilityLoading ? availability?.error : undefined
+  const cells = !availabilityLoading && !availabilityError ? availability?.cells ?? [] : []
   const cellFor = (id: number) => cells.find((c) => c.lab_id === labId && c.slot_id === id)
   const selected = slotId ? cellFor(slotId) : undefined
   const blocked = selected && (selected.status === 'class' || selected.status === 'unavailable' || selected.status === 'reserved')
@@ -52,12 +58,13 @@ export function ReservationForm({ labs, slots, requesterName, today, initial }: 
     else if (liveCapacityError) next.attendees = liveCapacityError
     if (!reason.trim()) next.reason = 'Describe el motivo de la solicitud'
     if (blocked) next.slotId = 'El horario seleccionado no está disponible'
+    if (slotId && (availabilityLoading || availabilityError)) next.slotId = 'Espera a que se confirme la disponibilidad'
     setErrors(next)
     if (Object.keys(next).length) return
     start(async () => {
       const res = await createRequestAction({ labId, date, slotId, type, attendees: Number(attendees), reason })
       if (res.ok) setDone({ code: res.data!.code, status: res.data!.status })
-      else { setServerError(res.error); setErrors(res.fieldErrors ?? {}) ; fetchAvailabilityAction(date).then(setCells) }
+      else { setServerError(res.error); setErrors(res.fieldErrors ?? {}); setAvailability(null); setAvailabilityAttempt((n) => n + 1) }
     })
   }
 
@@ -106,17 +113,18 @@ export function ReservationForm({ labs, slots, requesterName, today, initial }: 
             {slots.map((s) => {
               const c = labId ? cellFor(s.id) : undefined
               const status = c?.status ?? 'free'
-              const disabled = !labId || status === 'class' || status === 'unavailable' // reserved stays selectable to show the "No disponible" notice (prototype screen 11)
+              const disabled = !labId || availabilityLoading || !!availabilityError || status === 'class' || status === 'unavailable'
               const sel = slotId === s.id
               return (
-                <button type="button" key={s.id} disabled={disabled} onClick={() => { setSlotId(s.id); clear('slotId') }} aria-pressed={sel} data-testid={`pick-slot-${s.id}`} data-status={status}
+                <button type="button" key={s.id} disabled={disabled} onClick={() => { setSlotId(s.id); clear('slotId') }} aria-pressed={sel} data-testid={`pick-slot-${s.id}`} data-status={availabilityLoading ? 'loading' : availabilityError ? 'unknown' : status}
                   className={`rounded-lg border px-2 py-2 text-center text-sm font-medium ${SLOT_STYLE[status]} ${sel ? 'ring-2 ring-brand' : ''} ${disabled ? 'cursor-not-allowed' : ''}`}>
-                  {slotLabel(s).replace(/ /g, '')}<span className={`block text-[11px] ${SLOT_TEXT_STYLE[status]}`}>{labId ? SLOT_STATUS_LABEL[status] : '—'}</span>
+                  {slotLabel(s).replace(/ /g, '')}<span className={`block text-[11px] ${availabilityLoading || availabilityError ? 'text-gray-500' : SLOT_TEXT_STYLE[status]}`}>{availabilityLoading ? 'Consultando…' : availabilityError ? 'Sin verificar' : labId ? SLOT_STATUS_LABEL[status] : '—'}</span>
                 </button>
               )
             })}
           </div>
           {err('slotId')}
+          {availabilityError && <div role="alert" className="mt-2 text-sm text-red-700"><p>{availabilityError}</p><button type="button" className="mt-1 min-h-10 font-semibold underline" onClick={() => { setAvailability(null); setAvailabilityAttempt((n) => n + 1) }}>Reintentar disponibilidad</button></div>}
         </div>
 
         {lab && slot && selected && !blocked && (
@@ -145,7 +153,7 @@ export function ReservationForm({ labs, slots, requesterName, today, initial }: 
         </label>
       </div>
       {serverError && <p role="alert" data-testid="server-error" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{serverError}</p>}
-      <Button type="submit" variant="primary" fullWidth isPending={pending} isDisabled={!!blocked} className="!bg-brand">Enviar solicitud</Button>
+      <Button type="submit" variant="primary" fullWidth isPending={pending} isDisabled={!!blocked || !!availabilityError} className="!bg-brand">Enviar solicitud</Button>
     </form>
   )
 }

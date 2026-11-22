@@ -5,12 +5,15 @@ import { createClient } from '@/lib/supabase/server'
 import { dbErrorMessage } from '@/lib/domain/errors'
 import { fieldErrors, rejectionSchema, reservationInputSchema, capacityError } from '@/lib/validation/reservation'
 import { getAvailability } from '@/services/availability'
+import { isValidIsoDate } from '@/lib/domain/labels'
 import { getLab } from '@/services/labs'
 import { approveRequest, cancelRequest, createRequest, rejectRequest } from '@/services/requests'
 import type { ActionResult, AvailabilityCell } from '@/types'
 
 function revalidateAll() {
-  for (const p of ['/availability', '/my-requests', '/admin/requests', '/admin/reservations']) revalidatePath(p)
+  for (const p of ['/availability', '/my-requests', '/admin/requests', '/admin/reservations', '/notifications']) revalidatePath(p)
+  revalidatePath('/my-requests/[id]', 'page')
+  revalidatePath('/laboratories/[id]', 'page')
 }
 
 export async function createRequestAction(raw: unknown): Promise<ActionResult<{ code: string; status: string }>> {
@@ -33,7 +36,7 @@ export async function createRequestAction(raw: unknown): Promise<ActionResult<{ 
 
 export async function fetchAvailabilityAction(date: string): Promise<AvailabilityCell[]> {
   await requireUser()
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return []
+  if (!isValidIsoDate(date)) return []
   return getAvailability(await createClient(), date)
 }
 
