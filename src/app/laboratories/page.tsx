@@ -1,4 +1,5 @@
 import Link from '@/components/navigation-link'
+import Form from 'next/form'
 import { ChevronRight, Code2, Cpu, FlaskConical, Monitor, Network, Search, Server, Users, Video, Brain, Database } from 'lucide-react'
 import { AppShell } from '@/components/app-shell'
 import { LabTabs } from '@/components/lab-tabs'
@@ -34,11 +35,11 @@ export default async function LaboratoriesPage({ searchParams }: { searchParams:
   return (
     <AppShell user={user} title={user.role === 'student' ? 'Laboratorios' : 'Gestión de espacios'}>
       {user.role !== 'student' && <LabTabs active="labs" />}
-      <form className="mx-4 mt-4 flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3" role="search">
+      <Form action="/laboratories" className="mx-4 mt-4 flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 focus-within:ring-2 focus-within:ring-brand/30" role="search">
         <Search size={16} className="text-gray-400" />
         <input name="q" defaultValue={q} placeholder="Laboratorio, aula o software" aria-label="Buscar laboratorio" className="w-full py-2.5 text-sm outline-none" />
         <input type="hidden" name="filter" value={filter} />
-      </form>
+      </Form>
       <div className="mt-3 flex gap-2 overflow-x-auto px-4">
         {FILTERS.map(([k, label]) => (
           <Link key={k} href={href(k)} aria-current={filter === k} className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${filter === k ? 'border-brand bg-brand text-white' : 'border-gray-200 bg-white'}`}>{label}</Link>
