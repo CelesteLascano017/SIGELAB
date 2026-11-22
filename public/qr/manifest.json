@@ -1,0 +1,32 @@
+[
+  {
+    "file": "lab-01",
+    "title": "Ingeniería de Software A",
+    "payload": "SIGELAB:LAB:LAB-01",
+    "expected": "Abre LAB-01"
+  },
+  {
+    "file": "lab-03",
+    "title": "Redes y Conectividad",
+    "payload": "SIGELAB:LAB:LAB-03",
+    "expected": "Abre LAB-03"
+  },
+  {
+    "file": "lab-08",
+    "title": "Bases de Datos",
+    "payload": "SIGELAB:LAB:LAB-08",
+    "expected": "Abre LAB-08"
+  },
+  {
+    "file": "unknown-lab",
+    "title": "Laboratorio no registrado",
+    "payload": "SIGELAB:LAB:LAB-99",
+    "expected": "Muestra laboratorio no registrado"
+  },
+  {
+    "file": "invalid",
+    "title": "Código ajeno a SIGELAB",
+    "payload": "https://example.com",
+    "expected": "Rechaza el código"
+  }
+]

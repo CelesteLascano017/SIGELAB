@@ -36,10 +36,8 @@ export function BottomNav({ role, pending = 0 }: { role: Role; pending?: number 
   return (
     <nav className="sticky bottom-0 z-20 flex items-end border-t border-gray-200 bg-white" aria-label="Navegación principal">
       {cell(left)}
-      {/* QR scanning belongs to the Lab-fis platform, outside this module's user stories */}
       <div className="flex flex-1 flex-col items-center">
-        <button type="button" disabled title="Fuera del alcance de este módulo" aria-label="Escanear QR (no disponible)"
-          className={`-mt-6 flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-lg ${role === 'admin' ? 'bg-admin' : 'bg-brand'}`}><ScanLine size={22} /></button>
+        <Link href="/scan" aria-label="Escanear QR" className={`-mt-6 flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-lg ${role === 'admin' ? 'bg-admin' : 'bg-brand'}`}><ScanLine size={22} /></Link>
         <span className="pb-2 pt-0.5 text-[11px] font-medium text-gray-700">Escanear QR</span>
       </div>
       {cell(right)}
