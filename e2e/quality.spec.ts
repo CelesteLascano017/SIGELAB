@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright'
 import { DEMO, login } from './helpers'
 
 const PAGES: Record<string, string[]> = {
-  [DEMO.student]: ['/modules', '/laboratories', '/availability', '/notifications'],
+  [DEMO.student]: ['/modules', '/laboratories', '/availability', '/notifications', '/scan', '/scan/examples'],
   [DEMO.prof]: ['/laboratories', '/availability', '/reservations/new', '/my-requests', '/notifications'],
   [DEMO.admin]: ['/admin/requests', '/admin/reservations'],
 }
