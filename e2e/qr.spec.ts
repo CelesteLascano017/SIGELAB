@@ -37,6 +37,15 @@ test('rejects unrelated and unregistered QR codes and can retry', async ({ page 
   await expect(page).toHaveURL(/\/scan$/)
 })
 
+test('an image without a QR gives a recoverable message', async ({ page }) => {
+  await page.goto('/scan')
+  await expect(page.locator('p[role="alert"]')).toContainText('permiso')
+  const blank = await page.getByRole('heading', { name: 'Abre un laboratorio con su QR' }).screenshot()
+  await page.getByLabel('Subir imagen del QR').setInputFiles({ name: 'no-qr.png', mimeType: 'image/png', buffer: blank })
+  await expect(page.locator('p[role="alert"]')).toContainText('No encontramos un QR')
+  await expect(page.getByLabel('Subir imagen del QR')).toBeEnabled()
+})
+
 test('camera frames decode a synthetic QR and navigate', async ({ page }) => {
   await page.addInitScript(() => {
     Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { configurable: true, value: async () => {

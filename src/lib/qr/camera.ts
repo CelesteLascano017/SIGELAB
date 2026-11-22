@@ -6,7 +6,7 @@ export async function openCamera(video: HTMLVideoElement, signal: AbortSignal): 
     if (stopped) return
     stopped = true
     stream.getTracks().forEach((track) => track.stop())
-    video.srcObject = null
+    if (video.srcObject === stream) video.srcObject = null
   }
   if (signal.aborted) { stop(); signal.throwIfAborted() }
   signal.addEventListener('abort', stop, { once: true })

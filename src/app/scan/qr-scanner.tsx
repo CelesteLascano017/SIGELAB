@@ -119,7 +119,7 @@ export function QrScanner() {
     {error && <p role="alert" className="rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900">{error}</p>}
     <div className="grid grid-cols-2 gap-3">
       <button type="button" onClick={() => void start()} disabled={cameraActive || busy} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-brand px-3 py-3 text-sm font-semibold text-white disabled:opacity-50"><Camera size={18} />{error ? 'Reintentar cámara' : 'Activar cámara'}</button>
-      <label className={`inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-3 text-sm font-semibold ${busy ? 'opacity-50' : ''}`}><ImagePlus size={18} />Subir imagen
+      <label className={`inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-3 text-sm font-semibold focus-within:ring-2 focus-within:ring-brand focus-within:ring-offset-2 ${busy ? 'opacity-50' : ''}`}><ImagePlus size={18} />Subir imagen
         <input type="file" accept="image/*" aria-label="Subir imagen del QR" disabled={busy} className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void readFile(file) }} />
       </label>
     </div>
