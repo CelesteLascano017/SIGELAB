@@ -3,6 +3,17 @@
 Módulo web para consultar laboratorios, ver su disponibilidad, solicitar reservas y gestionarlas.
 Stack: **Next.js 16 · TypeScript · Tailwind CSS 4 · HeroUI 3 · Supabase (Auth + PostgreSQL + RLS)**.
 
+**Actualización 2026-11-22:** navegación con feedback inmediato, skeletons por pantalla, búsquedas sin recarga completa y lector QR funcional. Evidencia y límites en [`docs/IMPLEMENTATION_2026-11-22.md`](docs/IMPLEMENTATION_2026-11-22.md).
+
+## Probar el lector QR
+- Abre **Escanear QR** desde la navegación inferior. La cámara necesita **HTTPS o localhost**; si no está disponible, usa **Subir imagen**.
+- Los [QRs sintéticos](public/qr/manifest.json) están también en `/scan/examples`: LAB-01, LAB-03, LAB-08, un laboratorio inexistente y un código inválido. Descárgalos o muéstralos en otra pantalla.
+- El formato `SIGELAB:LAB:LAB-03` se interpreta en el lector de esta app y abre el detalle del laboratorio. No crea reservas ni cambia estados.
+- `npm run qr:generate` regenera los cinco PNG sin conectarse a la base.
+- Para la demo con rendimiento de producción: `npm run build` y luego `npm start`. `next dev` incluye compilación y herramientas de desarrollo.
+
+**Base de datos:** aplicar `supabase/migrations/20261122000005_review_fixes.sql` en el proyecto Supabase para activar las correcciones de roles, contador y aprobaciones vencidas. La migración fue probada localmente; no se ejecutó contra la base remota durante este trabajo.
+
 > **Estado:** HU-01 a HU-06 implementadas y verificadas contra el proyecto Supabase SIGELAB real (PostgreSQL + Auth + RLS). Resultados reales y limitaciones en [`docs/TEST_EVIDENCE.md`](docs/TEST_EVIDENCE.md). Pendiente de tu parte: subir a GitHub y desplegar.
 
 ## Historias implementadas
