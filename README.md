@@ -5,6 +5,8 @@ Stack: **Next.js 16 · TypeScript · Tailwind CSS 4 · HeroUI 3 · Supabase (Aut
 
 **Actualización 2026-11-22:** navegación con feedback inmediato, skeletons por pantalla, búsquedas sin recarga completa y lector QR funcional. Evidencia y límites en [`docs/IMPLEMENTATION_2026-11-22.md`](docs/IMPLEMENTATION_2026-11-22.md).
 
+**Cloudflare/OpenNext:** se usa temporalmente `src/middleware.ts` (Edge) para evitar el bug de cookies del adaptador con `proxy.ts`. Next 16 emite una advertencia de deprecación esperada. Diagnóstico, pruebas y condición de retirada en [`docs/CLOUDFLARE_COOKIE_FIX.md`](docs/CLOUDFLARE_COOKIE_FIX.md).
+
 ## Probar el lector QR
 - Abre **Escanear QR** desde la navegación inferior. La cámara necesita **HTTPS o localhost**; si no está disponible, usa **Subir imagen**.
 - Los [QRs sintéticos](public/qr/manifest.json) están también en `/scan/examples`: LAB-01, LAB-03, LAB-08, un laboratorio inexistente y un código inválido. Descárgalos o muéstralos en otra pantalla.
