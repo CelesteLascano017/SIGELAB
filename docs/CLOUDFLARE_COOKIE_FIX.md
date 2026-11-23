@@ -1,34 +1,66 @@
-# Cloudflare 1101 al iniciar sesión — 2026-11-22
+# Reparación de Cloudflare/OpenNext — 2026-11-22
 
-## Causa y reproducción
+## Diagnóstico comprobado y límite
 
-El Worker desplegado devuelve 200 para `GET /login` sin cookies y 500 si se añade únicamente `Cookie: sigelab_probe=1`. No necesita una sesión ni contraseña para fallar. Con credenciales válidas la redirección llega a `/modules`, pero tanto esa petición como su recarga devuelven Worker1101.
+El fallo original `/login` 200 sin cookies / 500 con `Cookie: sigelab_probe=1` se reprodujo en el Worker compilado ejecutado por **workerd**, antes de la lógica de sesión. OpenNext AWS 4.2.0 importa por defecto `cookie@1`; el bundle CommonJS no expone ese default y falla en `Object.convertFrom` al leer `parse`. Referencias: [issue 1506](https://github.com/opennextjs/opennextjs-cloudflare/issues/1506) y [PR 1507](https://github.com/opennextjs/opennextjs-cloudflare/pull/1507), todavía abierto al investigar.
 
-Los logs aportados muestran `TypeError: Cannot read properties of undefined (reading 'parse')` en `Object.convertFrom`, antes de que se ejecute la lógica de sesión. Coincide con [OpenNext Cloudflare #1506](https://github.com/opennextjs/opennextjs-cloudflare/issues/1506): el bundle del middleware Node (`proxy.ts`) trata incorrectamente el default import de `cookie@1`. El [arreglo upstream #1507](https://github.com/opennextjs/opennextjs-cloudflare/pull/1507) seguía abierto al investigar.
+El workaround anterior con middleware Edge produjo `Error in routingHandler` en el despliegue remoto. Fue un error considerarlo suficiente tras probar únicamente `next start`. Con configuración local explícita ese segundo error no se reprodujo: **sin acceso a configuración y logs remotos no se atribuye una causa exacta al fallo Edge**.
 
-## Cambio temporal
+## Reparación
 
-Se renombra el entrypoint `src/proxy.ts` a `src/middleware.ts` y su export a `middleware`, para usar el middleware Edge. Se mantienen exactamente el matcher, la validación de sesión, las cookies y los permisos. No se cambian dependencias, contraseñas, usuarios ni el diseño.
+- Restaurar `src/proxy.ts`, conservando el matcher y `updateSession` original.
+- Fijar Cloudflare 1.20.18, Wrangler 4.166.0 y Node 22.23.2 mediante lockfile/configuración versionada.
+- Aplicar un parche local, offline e idempotente al converter AWS 4.2.0: import nombrado `parse` en lugar de default. Corre en `postinstall` y antes del build, incluida una instalación limpia. Una versión o formato desconocidos detienen el proceso y requieren revisión.
+- Validar las variables públicas de Supabase **durante el build**, sin imprimir sus valores. Variables ausentes o URL inválida abortan antes de generar un Worker inutilizable.
+- Override de `glob` a 14.0.6 en el adaptador: evita los avisos conocidos del árbol de herramientas anterior.
 
-**Advertencia esperada:** Next.js 16 marca la convención `middleware.ts` como deprecada. Se usa intencionalmente como workaround del adaptador: el mismo reporte upstream confirma que el middleware Edge maneja las cookies correctamente. Volver a `proxy.ts` únicamente después de actualizar a una versión publicada del adaptador que corrija #1506 y verificar los casos con cookies en Workers.
+**Advertencia vigente:** OpenNext declara experimental el middleware Node en Cloudflare. El build la muestra; no se oculta. Retirar el parche solo después de actualizar el adaptador y repetir los casos en workerd y en el dominio desplegado.
 
-## Verificación
+## Build y despliegue reproducibles
 
-- Rojo en producción antes del cambio: los dos casos de `e2e/cloudflare-cookies.spec.ts` recibieron 500 en lugar de 200/307.
-- `npm run lint`: código 0.
-- `npm test`: **86/86**, código 0.
-- `npm run build`: código 0; warning de deprecación documentado arriba. El manifiesto generado registra middleware Edge, no una función proxy Node.
-- Servidor local con `npm start -- -p 3200`: **5/5** pruebas E2E. Incluyen `/login` con cookie inocua, rechazo de acceso sin sesión y render HTML después del login y de recarga directa para estudiante, docente y administrador.
-- Revisión independiente: sin hallazgos de regresión en el diff. Solo cambia el entrypoint del mismo control de sesión.
+En Cloudflare, configurar `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` en **Build variables and secrets**, además de las variables Runtime existentes. Las variables `NEXT_PUBLIC_*` se integran al compilar; configurarlas solo en Runtime no sustituye un build correcto. Nunca publicar claves privadas/service-role ni contraseñas en el repositorio.
 
-Comando para repetir las regresiones tras el redeploy:
+[Cloudflare documenta `.node-version` para fijar Node](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/). Node mínimo: 22.12.0. Instalación y build:
+
+```sh
+npm ci
+npm run lint
+npm test
+npm run build:cloudflare
+```
+
+El build usa `open-next.config.ts` y `wrangler.jsonc`; genera `.open-next/worker.js`. Para ejecutar **ese mismo artefacto** en workerd:
+
+```sh
+npm run preview:cloudflare -- --port 3300
+```
+
+En otra terminal:
+
+```sh
+npm run test:cloudflare
+PLAYWRIGHT_BASE_URL=http://localhost:3300 npm run test:e2e -- --grep-invert 'estado vacío'
+```
+
+Las tres pruebas de estado vacío usan hooks exclusivos de desarrollo, deshabilitados intencionalmente en producción. No habilitarlos en el Worker para hacer pasar tests.
+
+Configuración de Workers Builds: comando build `npm run build:cloudflare`; comando deploy `npm run deploy:cloudflare`. El deploy requiere autenticación Cloudflare y usa el Worker existente `sigelab`. Conservar sus variables y dominio en el panel. El archivo Wrangler no contiene secretos.
+
+Después del despliegue, ejecutar:
 
 ```sh
 PLAYWRIGHT_BASE_URL=https://sigelab.daxrpm.dev npm run test:e2e -- e2e/cloudflare-cookies.spec.ts e2e/authenticated-pages.spec.ts
 ```
 
-La configuración local carga las credenciales demo sin imprimirlas. La prueba HTTP de cookies no necesita credenciales.
+## Evidencia
 
-## Estado de despliegue
+- Rojo reproducido en workerd: cookie inocua provoca 500 y stack del converter `parse`.
+- Verde tras parche: cookies sin sesión y login/render/recarga para los tres roles.
+- Instalación limpia `npm ci`: parche reaplicado automáticamente, 473 paquetes instalados.
+- `npm run lint`: código 0. `npm test`: **94/94**, 10 archivos, código 0.
+- `npm run build:cloudflare`: código 0, Worker generado; advertencia experimental documentada arriba.
+- Recorridos finales en workerd: **35/35 E2E**, 1.9 minutos, código 0; roles, reservas/cancelación, QR, accesibilidad y respuesta con latencia. Tres casos de vacío exclusivos de desarrollo quedan fuera de este build.
+- `npx wrangler deploy --dry-run`: código 0; 39 assets, Worker gzip 1614.16 KiB. No publica el Worker.
+- Dependencias: 26 directas y 559 transitivas verificadas sin avisos conocidos en sus versiones; 4 entradas del lockfile no verificables por registro público. Esto no certifica ausencia de vulnerabilidades.
 
-El build de producción local y sus pruebas no acreditan que el Worker remoto haya sido actualizado. Para cerrar el incidente hay que fusionar el PR, completar el redeploy de Cloudflare y repetir las cinco pruebas contra el dominio. No se dispone de un canal autorizado/configurado para desplegar ese Worker desde esta sesión.
+El build y las pruebas locales **no acreditan un despliegue remoto reparado**. Esta sesión no tiene autenticación de Cloudflare: queda pendiente desplegar el commit y repetir las cinco regresiones contra el dominio.
