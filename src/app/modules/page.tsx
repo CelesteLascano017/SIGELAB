@@ -1,5 +1,5 @@
-import Link from 'next/link'
-import { Bell, ChevronRight, CircleUser, FlaskConical, Headset, ImageIcon, LayoutGrid, Laptop, Archive, FileWarning, Network } from 'lucide-react'
+import Link from '@/components/navigation-link'
+import { Bell, ChevronRight, LogOut, FlaskConical, Headset, ImageIcon, LayoutGrid, Laptop, Archive, FileWarning, Network } from 'lucide-react'
 import { signOutAction } from '@/actions/auth'
 import { homePathFor, requireUser } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
@@ -27,7 +27,7 @@ export default async function ModulesPage() {
       <header className="flex items-center gap-3 bg-brand px-4 py-3 text-white">
         <div className="flex-1"><h1 className="text-lg font-bold leading-tight">Volver</h1><p className="text-xs opacity-80">Lab-fis · Módulos</p></div>
         <Link href="/notifications" aria-label="Notificaciones" className="relative"><Bell size={20} />{unread > 0 && <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-500" />}</Link>
-        <form action={signOutAction}><button aria-label="Cerrar sesión"><CircleUser size={22} /></button></form>
+        <form action={signOutAction}><button aria-label="Cerrar sesión" title="Cerrar sesión" className="inline-flex h-10 w-10 items-center justify-center"><LogOut size={20} /></button></form>
       </header>
       <main className="space-y-3 p-4">
         <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-4">

@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/navigation-link'
 import { AlertTriangle, CheckCircle2, Clock, Lock, MinusCircle, XCircle } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { RequestStatus, SlotStatus } from '@/types'

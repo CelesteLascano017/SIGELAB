@@ -136,7 +136,7 @@ describe('HU-06 approve / reject + overlap prevention + availability', () => {
     const id = (await create(IDS.prof, lab6, futureWednesday(5), 3)).rows[0].id
     await expect(as(db, IDS.prof2, () => db.query(`select * from public.cancel_reservation_request($1)`, [id]))).rejects.toThrow('FORBIDDEN')
   })
-  it('concurrent approvals of the same slot: exactly one wins', async () => {
+  it('sequential competing approvals of the same slot: exactly one wins', async () => {
     const d3 = futureWednesday(4)
     const a = (await create(IDS.prof, lab6, d3, 3)).rows[0].id
     const b = (await create(IDS.prof2, lab6, d3, 3)).rows[0].id

@@ -47,14 +47,18 @@ export async function listAdminReservations(db: SupabaseClient): Promise<AdminRe
   return (data ?? []) as AdminReservation[]
 }
 
-export async function listNotifications(db: SupabaseClient, limit = 30): Promise<AppNotification[]> {
-  const { data } = await db.from('notifications').select('id, request_id, message, read, created_at').order('created_at', { ascending: false }).limit(limit)
+export async function listNotifications(db: SupabaseClient, page = 1): Promise<AppNotification[]> {
+  const { data, error } = await db.from('notifications').select('id, request_id, message, read, created_at').order('created_at', { ascending: false }).order('id', { ascending: false }).range((page - 1) * 30, page * 30)
+  if (error) throw new DbError(error.message)
   return (data ?? []) as AppNotification[]
 }
 export async function unreadCount(db: SupabaseClient): Promise<number> {
-  const { count } = await db.from('notifications').select('id', { count: 'exact', head: true }).eq('read', false)
+  const { count, error } = await db.from('notifications').select('id', { count: 'exact', head: true }).eq('read', false)
+  if (error) throw new DbError(error.message)
   return count ?? 0
 }
-export async function markAllRead(db: SupabaseClient) {
-  await db.from('notifications').update({ read: true }).eq('read', false)
+export async function markNotificationsRead(db: SupabaseClient, ids: string[]) {
+  if (!ids.length) return
+  const { error } = await db.from('notifications').update({ read: true }).in('id', ids).eq('read', false)
+  if (error) throw new DbError(error.message)
 }

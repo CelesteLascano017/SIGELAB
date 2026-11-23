@@ -1,5 +1,6 @@
-import Link from 'next/link'
-import { AlertTriangle, CalendarDays, ChevronRight, FileText, History, Search } from 'lucide-react'
+import Link from '@/components/navigation-link'
+import Form from 'next/form'
+import { AlertTriangle, CalendarDays, FileText, History, Search } from 'lucide-react'
 import { AppShell } from '@/components/app-shell'
 import { AutoSubmitSelect } from '@/components/auto-submit-select'
 import { ConflictChip, EmptyState, StatusChip } from '@/components/ui'
@@ -39,7 +40,7 @@ export default async function AdminReservationsPage({ searchParams }: { searchPa
 
   return (
     <AppShell user={user} title="Registro de reservas">
-      <form className="mx-4 mt-4 space-y-2" role="search">
+      <Form action="/admin/reservations" className="mx-4 mt-4 space-y-2" role="search">
         <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3"><Search size={16} className="text-gray-400" /><input name="q" defaultValue={q} aria-label="Buscar" placeholder="Buscar docente, motivo o código" className="w-full py-2.5 text-sm outline-none" /></div>
         <AutoSubmitSelect name="lab" label="Laboratorio" defaultValue={labId ?? ''} className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm">
           <option value="">Todos los laboratorios</option>
@@ -47,7 +48,7 @@ export default async function AdminReservationsPage({ searchParams }: { searchPa
         </AutoSubmitSelect>
         {status !== 'all' && <input type="hidden" name="status" value={status} />}
         {onlyConflicts && <input type="hidden" name="conflicts" value="1" />}
-      </form>
+      </Form>
       <div className="mt-3 flex gap-2 overflow-x-auto px-4">
         <Link href={href({ status: undefined })} aria-current={status === 'all'} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${status === 'all' ? 'border-admin bg-admin text-white' : 'border-gray-200 bg-white'}`}>Todas <span data-testid="count-all">{counts.all}</span></Link>
         {STATUSES.map((s) => <Link key={s} href={href({ status: s })} aria-current={status === s} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${status === s ? 'border-admin bg-admin text-white' : 'border-gray-200 bg-white'}`}>{STATUS_LABEL[s]}s <span data-testid={`count-${s}`}>{counts[s]}</span></Link>)}
@@ -72,7 +73,7 @@ export default async function AdminReservationsPage({ searchParams }: { searchPa
                     <div className="flex items-center justify-between gap-2"><span className="text-xs font-semibold">{r.code}</span><span className="flex gap-1">{r.has_conflict && <ConflictChip />}<StatusChip status={r.status} /></span></div>
                     <p className="mt-1 text-sm font-semibold">{r.lab_name}</p>
                     <p className="truncate text-xs text-gray-500">{r.requester_name} · {r.reason}</p>
-                    <p className="mt-2 flex items-center justify-between border-t border-gray-100 pt-2 text-xs text-gray-500"><span className="flex items-center gap-1"><FileText size={12} />{TYPE_LABEL[r.reservation_type]}</span><span className="flex items-center gap-1"><CalendarDays size={12} />{formatShortDate(r.date)} · {slotShort(slots.find((s) => s.id === r.slot_id)!)}<ChevronRight size={14} /></span></p>
+                    <p className="mt-2 flex items-center justify-between border-t border-gray-100 pt-2 text-xs text-gray-500"><span className="flex items-center gap-1"><FileText size={12} />{TYPE_LABEL[r.reservation_type]}</span><span className="flex items-center gap-1"><CalendarDays size={12} />{formatShortDate(r.date)} · {slotShort(slots.find((s) => s.id === r.slot_id)!)}</span></p>
                   </li>
                 ))}
               </ul>

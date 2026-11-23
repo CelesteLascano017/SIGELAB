@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/navigation-link'
 import { ChevronRight, ClipboardList, Plus } from 'lucide-react'
 import { AppShell } from '@/components/app-shell'
 import { EmptyState, StatusChip } from '@/components/ui'

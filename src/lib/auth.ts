@@ -6,11 +6,12 @@ import type { Role, SessionUser } from '@/types'
 /** Role is read from the profiles table (server side, RLS) — never from the client. */
 export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-  const { data } = await supabase.from('profiles').select('full_name, email, role').eq('id', user.id).single()
+  const { data: claims } = await supabase.auth.getClaims()
+  const id = claims?.claims.sub
+  if (!id) return null
+  const { data } = await supabase.from('profiles').select('full_name, email, role').eq('id', id).single()
   if (!data) return null
-  return { id: user.id, email: data.email, fullName: data.full_name, role: data.role as Role }
+  return { id, email: data.email, fullName: data.full_name, role: data.role as Role }
 })
 
 export async function requireUser(): Promise<SessionUser> {

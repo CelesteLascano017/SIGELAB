@@ -1,9 +1,9 @@
 import { z } from 'zod'
-import { RESERVATION_TYPES } from '@/lib/domain/labels'
+import { RESERVATION_TYPES, isValidIsoDate } from '@/lib/domain/labels'
 
 export const reservationInputSchema = z.object({
   labId: z.string().uuid('Selecciona un laboratorio'),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Selecciona una fecha'),
+  date: z.string().refine(isValidIsoDate, 'Selecciona una fecha válida'),
   slotId: z.coerce.number().int().min(1, 'Selecciona un horario').max(7, 'Selecciona un horario'),
   type: z.enum(RESERVATION_TYPES as [string, ...string[]], { error: 'Selecciona el tipo de reserva' }),
   attendees: z.coerce.number({ error: 'Indica el número de asistentes' }).int('Debe ser un número entero').min(1, 'Debe ser al menos 1'),

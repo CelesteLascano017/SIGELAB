@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/navigation-link'
 
 export function LabTabs({ active, date }: { active: 'labs' | 'availability'; date?: string }) {
   const tab = (key: string, href: string, label: string) => (

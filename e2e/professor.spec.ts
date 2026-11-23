@@ -88,6 +88,7 @@ test.describe('Docente · HU-03 / HU-05', () => {
     expect(own).toBeTruthy()
     // another professor tries to open it
     await page.getByLabel('Cerrar sesión').click()
+    await expect(page).toHaveURL(/\/login$/)
     await login(page, DEMO.prof2)
     await page.goto(own!)
     await expect(page.getByText('No tienes permisos para esta sección')).toBeVisible()
